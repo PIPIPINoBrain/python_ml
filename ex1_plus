@@ -1,0 +1,44 @@
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+from mpl_toolkits.mplot3d import Axes3D
+#load the data ex1.2
+data2 = pd.read_csv(r'C:\Users\Administrator\Desktop\ML\ex1\ex1data2.txt',sep=',',names=['space','rooms','price'])
+data2.insert(0,'ones',1)
+
+#normalize
+data2 = data2/data2.mean()
+print(data2.head())
+
+# x,y
+x = np.array(data2.iloc[:,0:3])
+y = np.array([data2.iloc[:,3]]).T
+print(x.shape)
+print(y.shape)
+
+#initlize
+theta = np.zeros((3,1))
+n = 2000
+rate = 0.02
+
+# count theta
+for i in range (n):
+    a = x@theta
+    loss = np.sum(np.power(a-y,2))/(2*len(y))
+    d_theta = x.T@(a-y)/(len(y))
+    theta = theta-rate*d_theta
+    if i%100==0:
+        print(i,loss)
+print(theta)
+
+#picture
+x_ = x[:,1]
+y_ = x[:,2]
+z_ = y[:,0]
+fig = plt.figure('3D_picture',facecolor='lightgray')
+ax = Axes3D(fig)
+ax.scatter(x_,y_,z_,c='r')
+x__ = np.linspace(x_.min(),x_.max(),num=50)
+y__ = np.linspace(y_.min(),y_.max(),num=50)
+z__ = x__*theta[1,0]+y__*theta[2,0]+theta[0,0]
+ax.plot(x__,y__,z__,c='black')
