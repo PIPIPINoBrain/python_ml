@@ -1,0 +1,34 @@
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+
+#load the data ex1.1
+data1 = pd.read_csv(r'C:\Users\Administrator\Desktop\ML\ex1\ex1data1.txt',sep=',',names=['population','profit'])
+data1.head()
+data1.describe()
+data1.info()
+
+#scatter map
+data1.plot.scatter('population','profit',color='blue',s=40,marker='*')
+
+#plus one,x,y=population,profit
+data1.insert(0,'ones',1)
+data1.head()
+x = np.array(data1.iloc[:,0:2])
+y = np.array([data1.iloc[:,2]]).T
+print(x.shape,y.shape)
+
+#init theta
+theta = np.zeros((2,1))
+n = 20000
+rate = 0.004
+costs = []
+for i in range (n):
+    a = x@theta
+    loss = np.sum(np.power((a-y),2))/(2*len(y))
+    d_theta = x.T@(a-y)/(len(y))
+    theta = theta-rate*d_theta
+print(theta)
+x_ = np.linspace(x[:,1].min(),x[:,1].max(),100)
+y_ = theta[0,0]+theta[1,0]*x_
+plt.plot(x_,y_,c='r')
