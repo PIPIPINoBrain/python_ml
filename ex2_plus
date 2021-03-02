@@ -1,0 +1,62 @@
+import numpy as np
+import matplotlib.pyplot as plt
+import pandas as pd
+
+#输入数据并绘图
+data_ex2 = pd.read_csv(r'C:\Users\Administrator\Desktop\ML\ex2\ex2data2.txt',sep =',',names=['x','y','label'])
+x1 = data_ex2['x']
+x2 = data_ex2['y']
+y = data_ex2['label']
+plt.figure("scatter")
+plt.scatter(x1,x2,c=y)
+plt.show()
+
+#定义激活函数
+def sigmoid(z):
+    return 1/(1+np.exp(-z))
+
+#特征映射
+def feature_map(x1,x2,power):
+    data={}
+    for i in range(power+1):
+        for j in range(power+1-i):
+            data['F{}{}'.format(i,j)] = np.power(x1,i)*np.power(x2,j)
+    return pd.DataFrame(data)
+data = feature_map(x1,x2,6)
+print(data)
+x = np.array(data)
+y = np.array([y]).T
+print(x.shape,y.shape)
+
+#初始化
+theta = np.zeros((28,1))
+n = 200000
+rate = 0.001
+lamda = 0.001
+m = len(y)
+#迭代函数
+def function(theta,n,rate,lamda,m,x,y):
+    cost = []
+    for i in range(n):
+        z = x@theta
+        a = sigmoid(z)
+        loss = -np.sum(y*np.log(a)+(1-y)*np.log(1-a))/m + lamda*np.sum(np.power(theta[1:,],2))/(2*m)
+        reg = np.insert(lamda*theta[1:,]/m,0,0,axis=0)
+        d_theta = x.T@(a-y)/m + reg
+        theta = theta-rate*d_theta
+        if i%1000==0:
+            print(i,loss)
+            cost.append(loss)
+    return cost,theta
+
+cost,theta = function(theta,n,rate,lamda,m,x,y)
+
+X=np.linspace(-1,1,200)
+Y = np.linspace(-1,1,200)
+X,Y = np.meshgrid(X,Y)
+z = feature_map(X.ravel(),Y.ravel(),6).values
+z = z@theta
+z = z.reshape(X.shape)
+plt.scatter(x1,x2,c=y)
+plt.contour(X,Y,z,0)
+plt.show()
