@@ -1,0 +1,54 @@
+import numpy as np
+import matplotlib.pyplot as plt
+import pandas as pd
+
+#输入数据并绘图
+data_ex2 = pd.read_csv(r'C:\Users\Administrator\Desktop\ML\ex2\ex2data1.txt',sep =',',names=['x','y','label'])
+x1 = data_ex2['x']
+x2 = data_ex2['y']
+y = data_ex2['label']
+plt.figure("scatter")
+plt.scatter(x1,x2,c=y)
+plt.show()
+
+#定义激活函数
+def sigmoid(z):
+    return 1/(1+np.exp(-z))
+
+#数据分配
+data_ex2.insert(0,'ones',1)
+x = np.array(data_ex2.iloc[:,0:3])
+y = np.array([data_ex2.iloc[:,3]]).T
+
+#初始化
+theta = np.zeros((3,1))
+n = 200000
+rate = 0.004
+m = len(y)
+#定义迭代函数
+def function(theta,x,y,n,rate,m):
+    cost = []
+    for i in range(n):
+        z = x@theta
+        a = sigmoid(z)
+        loss = -np.sum(y*np.log(a)+(1-y)*np.log(1-a))/m
+        d_theta = (1/m)*x.T@(a-y)
+        theta = theta-rate*d_theta
+        if i%10000==0:
+            print(i,loss)
+            cost.append(loss)
+    return cost,theta
+cost,theta=function(theta,x,y,n,rate,m)
+plt.figure(1)
+plt.plot(cost)
+plt.show()
+print(theta)
+
+#横轴X，竖轴Y,X*theta[1,0]+Y*theta[2,0]+theta[0,0]=0为分界曲线
+#Y = -(X*theta[1,0]+theta[0,0])/theta[2,0]
+X = np.linspace(30,100,100)
+Y = -(X*theta[1,0]+theta[0,0])/theta[2,0]
+plt.figure('scatter')
+plt.scatter(x1,x2,c=y)
+plt.plot(X,Y,c='r')
+plt.show()
