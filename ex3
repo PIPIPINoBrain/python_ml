@@ -1,0 +1,73 @@
+import numpy as np
+import matplotlib.pyplot as plt
+import scipy.io
+data = scipy.io.loadmat(r'C:\Users\Administrator\Desktop\ML\ex3\ex3data1')
+print(type(data))
+for i in data.keys():
+    print(i)
+X = data['X']
+y = data['y']
+print(X.shape,y.shape)
+
+#输出图片
+fig,ax = plt.subplots(figsize=(5,5))
+picture = X[36,:]
+ax.imshow(picture.reshape(20,20).T,cmap='gray_r')
+
+def sigmoid(z):
+    return 1/(1+np.exp(-z))
+
+#将（5000,1）转换为（5000,10）
+def one_hot(y):
+    Y = np.zeros((5000,10))
+    a = 0
+    for i in (y):
+        Y[a,i-1]=1
+        a+=1
+    return Y
+Y = one_hot(y)
+
+X = np.insert(X,0,1,axis=1)
+print(X.shape)
+
+#初始化
+theta = np.zeros((401,10))
+lamda = 0.001
+rate = 0.0004
+n = 2000
+
+#训练
+def function(X,Y,theta,lamda,rate,n):
+    cost = []
+    m = len(Y)
+    print(m)
+    for i in range(n):
+        z = np.matmul(X,theta)
+        a = sigmoid(z)
+        loss = -np.sum(Y*np.log(a)+(1-Y)*np.log(1-a))/m + np.sum(np.power(theta,2))/(2*m)
+        d_theta = X.T@(a-Y)+lamda*theta/m
+        theta = theta-rate*d_theta
+        if i%100==0:
+            print(i,loss)
+            cost.append(loss)
+    print(theta.shape)
+    return cost,theta
+cost,theta_end = function(X,Y,theta,lamda,rate,n)
+
+def predict(X,theta_end):
+    y_end = sigmoid(X@theta_end)
+    y_predict = np.zeros((5000,1))
+    for i in range(5000):
+        num=0
+        a=0
+        for j in range(10):
+            if y_end[i,j]>=a:
+                a = y_end[i,j]
+                num = j
+        y_predict[i]=num+1
+    return y_predict,y_end
+y_predict,y_end = predict(X,theta_end)
+print(y_end[4999])
+print(y_predict,y)
+accuracy = np.mean(y_predict==y)
+print(accuracy)
