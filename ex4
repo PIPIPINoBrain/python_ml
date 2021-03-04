@@ -1,0 +1,98 @@
+import numpy as np
+import matplotlib.pyplot as plt
+import scipy.io
+
+#数据读取整理
+ex3_data = scipy.io.loadmat(r"C:\Users\Administrator\Desktop\ML\ex4\ex4data1")
+ex3_theta = scipy.io.loadmat(r"C:\Users\Administrator\Desktop\ML\ex4\ex4weights")
+print(type(ex3_data),type(ex3_theta))
+print(ex3_data.keys(),'\n',ex3_theta.keys())
+X = ex3_data['X']
+y = ex3_data['y']
+theta1 = ex3_theta['Theta1'].T
+theta2 = ex3_theta['Theta2'].T
+x = np.insert(X,0,1,axis=1)
+print(type(X))
+print(x.shape,y.shape,theta1.shape,theta2.shape)
+
+#one——hot操作
+def one_hot(y):
+    Y = np.zeros((5000,10))
+    for i in range(5000):
+        a = y[i]-1
+        Y[i,a]=1
+    return Y
+Y = one_hot(y)
+print(Y.shape)
+print(Y[2500],y[2500])
+
+#sigmoid function
+def sigmoid(z):
+    return 1/(1+np.exp(-z))
+
+#前向传播
+def forward(theta1,theta2,x):
+    z1 = np.matmul(x,theta1)
+    a1 = sigmoid(z1)
+    a1 = np.insert(a1,0,1,axis=1)
+    z2 = np.dot(a1,theta2)
+    a2 = sigmoid(z2)
+    return z1,a1,z2,a2
+
+#反向传播
+def backward(theta1,theta2,x,Y,lamda,n,rate):
+    cost = []
+    m =len(x)
+    for i in range(n):
+        z1,a1,z2,a2 = forward(theta1,theta2,x)
+        loss1 = -np.sum(Y*np.log(a2)+(1-Y)*np.log(1-a2))/m
+        loss2 = (lamda/(2*m))*(np.sum(np.power(theta1,2))+np.sum(np.power(theta2,2)))
+        loss = loss1 + loss2
+        d_z2 = a2-Y
+        d_theta2 = (a1.T@d_z2)/m + lamda*theta2/m
+        d_a1 = d_z2@theta2.T
+        d_z1 = d_a1*a1*(1-a1)
+        d_z1 = d_z1[:,:25]
+        d_theta1 = x.T@d_z1/m + lamda*theta1/m
+        theta1 = theta1-rate*d_theta1
+        theta2 = theta2-rate*d_theta2
+        if i%100==0:
+            print(i,loss)
+            cost.append(loss)
+    return cost,theta1,theta2
+
+#测试一下
+lamda = 1
+rate = 0.04
+n = 2000
+z1,a1,z2,a2 = forward(theta1,theta2,x)
+print(z1.shape,a1.shape,z2.shape,z2.shape)
+cost,theta1,theta2 = backward(theta1,theta2,x,Y,lamda,n,rate)
+
+#绘图
+plt.subplot()
+plt.plot(np.arange(10),cost)
+plt.show()
+
+#准确率
+def predict(x,Y,theta1,theta2):
+    z1 = x@theta1
+    a1 = sigmoid(z1)
+    a1 = np.insert(a1,0,1,axis=1)
+    z2 = a1@theta2
+    a2 = sigmoid(z2)
+    y_predict = np.zeros((5000,1))
+    for i in range(5000):
+        num = 0
+        max = 0
+        for j in range(10):
+            if (a2[i,j]>max):
+                max = a2[i,j]
+                num = j+1
+        y_predict[i]=num
+    return y_predict
+
+y_predict = predict(x,Y,theta1,theta2)
+accuracy = np.mean(y_predict==y)
+print(accuracy)
+            
